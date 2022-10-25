@@ -7,6 +7,7 @@ package com.mytiki.l0_auth.main;
 
 import com.mytiki.l0_auth.features.latest.FeaturesConfig;
 import com.mytiki.l0_auth.health.HealthConfig;
+import com.mytiki.l0_auth.jwks.JWKSConfig;
 import com.mytiki.l0_auth.security.SecurityConfig;
 import com.mytiki.l0_auth.utilities.UtilitiesConfig;
 import com.mytiki.spring_rest_api.ApiExceptionHandlerDefault;
@@ -30,6 +31,7 @@ import java.util.TimeZone;
         ApiExceptionHandlerDefault.class,
         SecurityConfig.class,
         HealthConfig.class,
+        JWKSConfig.class,
         UtilitiesConfig.class,
         FeaturesConfig.class
 })
