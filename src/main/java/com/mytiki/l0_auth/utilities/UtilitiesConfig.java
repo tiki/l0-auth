@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Bean;
 
 public class UtilitiesConfig {
     @Bean
-    public Sendgrid sendgrid(
-            @Value("${com.mytiki.bouncer.sendgrid.apikey}") String sendgridApiKey) {
+    public Sendgrid sendgrid(@Value("${com.mytiki.l0_auth.sendgrid.apikey}") String sendgridApiKey) {
         return new Sendgrid(sendgridApiKey);
     }
 }

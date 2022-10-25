@@ -7,6 +7,7 @@ package com.mytiki.l0_auth.main;
 
 import com.mytiki.l0_auth.features.latest.FeaturesConfig;
 import com.mytiki.l0_auth.health.HealthConfig;
+import com.mytiki.l0_auth.security.SecurityConfig;
 import com.mytiki.l0_auth.utilities.UtilitiesConfig;
 import com.mytiki.spring_rest_api.ApiExceptionHandlerDefault;
 import io.swagger.v3.oas.models.Components;
@@ -27,6 +28,7 @@ import java.util.TimeZone;
 
 @Import({
         ApiExceptionHandlerDefault.class,
+        SecurityConfig.class,
         HealthConfig.class,
         UtilitiesConfig.class,
         FeaturesConfig.class
