@@ -3,25 +3,26 @@
  * MIT license. See LICENSE file in root directory.
  */
 
-package com.mytiki.l0_auth.jwks;
+package com.mytiki.l0_auth.utilities;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
+import com.nimbusds.jose.jwk.JWKSet;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "OAuth")
-@RestController
-@RequestMapping(value = "/jwks")
-public class JWKSController {
-    private final JWKSService service;
+import java.util.Map;
 
-    public JWKSController(JWKSService service) {
-        this.service = service;
+@RestController
+@RequestMapping(value = "/.well-known/jwks.json")
+public class JWKS {
+    private final JWKSet jwkSet;
+
+    public JWKS(JWKSet jwkSet) {
+        this.jwkSet = jwkSet;
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public JWKSAO get() {
-        return service.getJwks();
+    public Map<String, Object> get() {
+        return jwkSet.toJSONObject(true);
     }
 }

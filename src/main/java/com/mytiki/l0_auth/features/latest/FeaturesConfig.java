@@ -5,10 +5,12 @@
 
 package com.mytiki.l0_auth.features.latest;
 
+import com.mytiki.l0_auth.features.latest.oauth.OauthConfig;
 import com.mytiki.l0_auth.features.latest.otp.OtpConfig;
 import org.springframework.context.annotation.Import;
 
 @Import({
+        OauthConfig.class,
         OtpConfig.class
 })
 public class FeaturesConfig {

@@ -38,8 +38,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private final AccessDeniedHandler accessDeniedHandler;
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    private static final String REMOTE_WORKER_ROLE = "REMOTE";
-
     public SecurityConfig(@Autowired ObjectMapper objectMapper) {
         super(true);
         this.accessDeniedHandler = new AccessDeniedHandler(objectMapper);

@@ -5,29 +5,42 @@
 
 package com.mytiki.l0_auth.features.latest.otp;
 
+import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.l0_auth.utilities.Mustache;
 import com.mytiki.l0_auth.utilities.Sendgrid;
 import com.mytiki.spring_rest_api.ApiExceptionBuilder;
+import com.nimbusds.jose.*;
+import com.nimbusds.jwt.JWTClaimsSet;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.sql.Date;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.*;
 
 public class OtpService {
-    private static final Long EXPIRY_DURATION_MINUTES = 30L;
+    private static final Long CODE_EXPIRY_DURATION_MINUTES = 30L;
+    private static final Long TOKEN_EXPIRY_DURATION_SECONDS = 600L;
     private final OtpRepository repository;
     private final Mustache templates;
     private final Sendgrid sendgrid;
+    private final JWSSigner signer;
 
-    public OtpService(OtpRepository repository, Mustache templates, Sendgrid sendgrid) {
+    public OtpService(OtpRepository repository, Mustache templates, Sendgrid sendgrid, JWSSigner signer) {
         this.repository = repository;
         this.templates = templates;
         this.sendgrid = sendgrid;
+        this.signer = signer;
     }
 
     public OtpAOIssueRsp issue(OtpAOIssueReq req) {
@@ -51,7 +64,7 @@ public class OtpService {
         if (sent) {
             OtpDO otpDO = new OtpDO();
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-            ZonedDateTime expires = now.plusMinutes(EXPIRY_DURATION_MINUTES);
+            ZonedDateTime expires = now.plusMinutes(CODE_EXPIRY_DURATION_MINUTES);
             otpDO.setOtpHashed(hashedOtp(deviceId, code));
             otpDO.setIssued(now);
             otpDO.setExpires(expires);
@@ -68,23 +81,31 @@ public class OtpService {
         }
     }
 
-    public OtpAOAuthorizeRsp authorize(OtpAOAuthorizeReq req) {
-        String hashedOtp = hashedOtp(req.getDeviceId(), req.getCode());
+    public OAuth2AccessTokenResponse authorize(String deviceId, String code) {
+        String hashedOtp = hashedOtp(deviceId, code);
         Optional<OtpDO> found = repository.findByOtpHashed(hashedOtp);
         if (found.isEmpty())
-            throw new ApiExceptionBuilder(HttpStatus.UNAUTHORIZED)
-                    .message("Invalid One-time Password (OTP)")
-                    .detail("Device id and/or code invalid")
-                    .help("Check your email")
-                    .build();
+            throw new OAuth2AuthorizationException(new OAuth2Error(
+                    OAuth2ErrorCodes.ACCESS_DENIED,
+                    "deviceId (username) and/or code (password) are invalid",
+                    null
+            ));
         repository.delete(found.get());
         if (ZonedDateTime.now(ZoneOffset.UTC).isAfter(found.get().getExpires()))
-            throw new ApiExceptionBuilder(HttpStatus.UNAUTHORIZED)
-                    .message("Invalid One-time Password (OTP)")
-                    .detail("Expired")
-                    .help("Reissue for a new OTP")
-                    .build();
-        return new OtpAOAuthorizeRsp();
+            throw new OAuth2AuthorizationException(new OAuth2Error(
+                    OAuth2ErrorCodes.ACCESS_DENIED,
+                    "Expired code. Re-start OTP process",
+                    null
+            ));
+        try {
+            return accessToken(TOKEN_EXPIRY_DURATION_SECONDS);
+        } catch (JOSEException e) {
+            throw new OAuth2AuthorizationException(new OAuth2Error(
+                    OAuth2ErrorCodes.SERVER_ERROR,
+                    "Issue with JWT construction",
+                    null
+            ), e);
+        }
     }
 
     private String hashedOtp(String deviceId, String code) {
@@ -128,5 +149,36 @@ public class OtpService {
                     .cause(e)
                     .build();
         }
+    }
+
+    private OAuth2AccessTokenResponse accessToken(long expiresIn) throws JOSEException {
+        Instant iat = Instant.now();
+        Instant exp = iat.plusSeconds(expiresIn);
+
+        JWSObject jwsObject = new JWSObject(
+                new JWSHeader
+                        .Builder(JWSAlgorithm.ES256)
+                        .type(JOSEObjectType.JWT)
+                        .build(),
+                new Payload(
+                        new JWTClaimsSet.Builder()
+                                .issuer(Constants.MODULE_DOT_PATH)
+                                .issueTime(Date.from(iat))
+                                .expirationTime(Date.from(exp))
+                                //.audience()
+                                //.jwtID()
+                                //.subject()
+                                .build()
+                                .toJSONObject()
+                ));
+
+        jwsObject.sign(signer);
+        return OAuth2AccessTokenResponse
+                .withToken(jwsObject.serialize())
+                .tokenType(OAuth2AccessToken.TokenType.BEARER)
+                .expiresIn(expiresIn)
+                //.scopes()
+                //.refreshToken()
+                .build();
     }
 }
