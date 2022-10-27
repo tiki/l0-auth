@@ -6,6 +6,7 @@
 package com.mytiki.l0_auth.features.latest.oauth;
 
 import com.mytiki.l0_auth.features.latest.otp.OtpService;
+import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -18,8 +19,9 @@ public class OauthConfig {
 
     @Bean
     public OauthController oauthController(
-            @Autowired OtpService otpService) {
-        return new OauthController(otpService);
+            @Autowired OtpService otpService,
+            @Autowired RefreshService refreshService) {
+        return new OauthController(otpService, refreshService);
     }
 
     @Bean

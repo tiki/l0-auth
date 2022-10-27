@@ -6,7 +6,9 @@
 package com.mytiki.l0_auth.features.latest.oauth;
 
 import com.mytiki.l0_auth.features.latest.otp.OtpService;
+import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
 import com.mytiki.spring_rest_api.ApiConstants;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
@@ -20,9 +22,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class OauthController {
     public static final String PATH_CONTROLLER = ApiConstants.API_LATEST_ROUTE + "oauth";
     private final OtpService otpService;
+    private final RefreshService refreshService;
 
-    public OauthController(OtpService otpService) {
+    public OauthController(OtpService otpService, RefreshService refreshService) {
         this.otpService = otpService;
+        this.refreshService = refreshService;
     }
 
     @RequestMapping(
@@ -51,10 +55,7 @@ public class OauthController {
             @RequestParam(name = "refresh_token") String refreshToken) {
         if (!grantType.equals(AuthorizationGrantType.REFRESH_TOKEN))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
-        return OAuth2AccessTokenResponse
-                .withToken(refreshToken)
-                .tokenType(OAuth2AccessToken.TokenType.BEARER)
-                .build();
+        return refreshService.authorize(refreshToken);
     }
 
     @RequestMapping(
@@ -74,12 +75,13 @@ public class OauthController {
                 .build();
     }
 
+    @ApiResponse(responseCode = "200")
     @RequestMapping(
             method = RequestMethod.POST,
             path = "/revoke",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
-    public OAuth2AccessTokenResponse revoke(@RequestParam String token) {
-        return null;
+    public void revoke(@RequestParam String token) {
+        refreshService.revoke(token);
     }
 
 }

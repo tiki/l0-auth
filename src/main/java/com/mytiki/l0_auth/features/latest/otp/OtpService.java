@@ -5,6 +5,7 @@
 
 package com.mytiki.l0_auth.features.latest.otp;
 
+import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
 import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.l0_auth.utilities.Mustache;
 import com.mytiki.l0_auth.utilities.Sendgrid;
@@ -30,20 +31,26 @@ import java.util.*;
 
 public class OtpService {
     private static final Long CODE_EXPIRY_DURATION_MINUTES = 30L;
-    private static final Long TOKEN_EXPIRY_DURATION_SECONDS = 600L;
     private final OtpRepository repository;
     private final Mustache templates;
     private final Sendgrid sendgrid;
     private final JWSSigner signer;
+    private final RefreshService refreshService;
 
-    public OtpService(OtpRepository repository, Mustache templates, Sendgrid sendgrid, JWSSigner signer) {
+    public OtpService(
+            OtpRepository repository,
+            Mustache templates,
+            Sendgrid sendgrid,
+            JWSSigner signer,
+            RefreshService refreshService) {
         this.repository = repository;
         this.templates = templates;
         this.sendgrid = sendgrid;
         this.signer = signer;
+        this.refreshService = refreshService;
     }
 
-    public OtpAOIssueRsp issue(OtpAOIssueReq req) {
+    public OtpAOIssueRsp start(OtpAOIssueReq req) {
         String deviceId = randomB64(32);
         String code = randomAlphanumeric(6);
 
@@ -98,7 +105,13 @@ public class OtpService {
                     null
             ));
         try {
-            return accessToken(TOKEN_EXPIRY_DURATION_SECONDS);
+            return OAuth2AccessTokenResponse
+                    .withToken(token(Constants.TOKEN_EXPIRY_DURATION_SECONDS))
+                    .tokenType(OAuth2AccessToken.TokenType.BEARER)
+                    .expiresIn(Constants.TOKEN_EXPIRY_DURATION_SECONDS)
+                    //.scopes()
+                    .refreshToken(refreshService.token())
+                    .build();
         } catch (JOSEException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(
                     OAuth2ErrorCodes.SERVER_ERROR,
@@ -151,11 +164,9 @@ public class OtpService {
         }
     }
 
-    private OAuth2AccessTokenResponse accessToken(long expiresIn) throws JOSEException {
+    private String token(long expiresIn) throws JOSEException {
         Instant iat = Instant.now();
-        Instant exp = iat.plusSeconds(expiresIn);
-
-        JWSObject jwsObject = new JWSObject(
+        JWSObject token = new JWSObject(
                 new JWSHeader
                         .Builder(JWSAlgorithm.ES256)
                         .type(JOSEObjectType.JWT)
@@ -164,21 +175,11 @@ public class OtpService {
                         new JWTClaimsSet.Builder()
                                 .issuer(Constants.MODULE_DOT_PATH)
                                 .issueTime(Date.from(iat))
-                                .expirationTime(Date.from(exp))
-                                //.audience()
-                                //.jwtID()
-                                //.subject()
+                                .expirationTime(Date.from(iat.plusSeconds(expiresIn)))
                                 .build()
                                 .toJSONObject()
                 ));
-
-        jwsObject.sign(signer);
-        return OAuth2AccessTokenResponse
-                .withToken(jwsObject.serialize())
-                .tokenType(OAuth2AccessToken.TokenType.BEARER)
-                .expiresIn(expiresIn)
-                //.scopes()
-                //.refreshToken()
-                .build();
+        token.sign(signer);
+        return token.serialize();
     }
 }

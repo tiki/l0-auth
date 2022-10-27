@@ -16,4 +16,7 @@ public interface Constants {
     String PACKAGE_FEATURES_LATEST_SLASH_PATH = MODULE_SLASH_PATH + "/" + SLICE_FEATURES + "/" + SLICE_LATEST;
 
     String API_DOCS_PATH = "/v3/api-docs.yaml";
+
+    Long TOKEN_EXPIRY_DURATION_SECONDS = 600L;
+    Long REFRESH_EXPIRY_DURATION_SECONDS = 2592000L;
 }

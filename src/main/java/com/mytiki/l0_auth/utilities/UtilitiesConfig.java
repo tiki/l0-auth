@@ -7,7 +7,9 @@ package com.mytiki.l0_auth.utilities;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -21,6 +23,7 @@ import org.bouncycastle.math.ec.ECPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -32,6 +35,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
+@Import({ExHandler.class})
 public class UtilitiesConfig {
     @Bean
     public Sendgrid sendgrid(@Value("${com.mytiki.l0_auth.sendgrid.apikey}") String sendgridApiKey) {
@@ -63,6 +67,14 @@ public class UtilitiesConfig {
             @Value("${com.mytiki.l0_auth.jwt.kid}") String kid)
             throws JOSEException {
         return new ECDSASigner(jwkSet.getKeyByKeyId(kid).toECKey().toECPrivateKey(), Curve.P_256);
+    }
+
+    @Bean
+    public JWSVerifier jwsVerifier(
+            @Autowired JWKSet jwkSet,
+            @Value("${com.mytiki.l0_auth.jwt.kid}") String kid)
+            throws JOSEException {
+        return new ECDSAVerifier(jwkSet.getKeyByKeyId(kid).toECKey().toECPublicKey());
     }
 
     private ECPrivateKey privateKey(KeyFactory keyFactory, String pkcs8) throws InvalidKeySpecException {
