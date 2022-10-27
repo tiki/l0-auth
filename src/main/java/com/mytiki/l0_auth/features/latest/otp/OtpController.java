@@ -24,7 +24,7 @@ public class OtpController {
     }
 
     @RequestMapping(method = RequestMethod.POST, path = PATH_ISSUE)
-    public OtpAOIssueRsp issue(@RequestBody OtpAOIssueReq body) {
+    public OtpAOStartRsp issue(@RequestBody OtpAOStartReq body) {
         return otpService.start(body);
     }
 }

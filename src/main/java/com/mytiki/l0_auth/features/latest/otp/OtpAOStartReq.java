@@ -8,11 +8,11 @@ package com.mytiki.l0_auth.features.latest.otp;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class OtpAOIssueReq {
+public class OtpAOStartReq {
     private String email;
 
     @JsonCreator
-    public OtpAOIssueReq(@JsonProperty(required = true) String email) {
+    public OtpAOStartReq(@JsonProperty(required = true) String email) {
         this.email = email;
     }
 

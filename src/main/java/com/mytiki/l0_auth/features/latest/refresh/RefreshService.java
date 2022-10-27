@@ -8,6 +8,8 @@ package com.mytiki.l0_auth.features.latest.refresh;
 import com.mytiki.l0_auth.utilities.Constants;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.proc.BadJWTException;
+import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -18,6 +20,8 @@ import java.sql.Date;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -63,7 +67,7 @@ public class RefreshService {
     public OAuth2AccessTokenResponse authorize(String jwt) {
         try {
             JWSObject jws = JWSObject.parse(jwt);
-            if (!jws.verify(verifier))
+            if (!verify(jws))
                 throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT));
 
             String jti = (String) jws.getPayload().toJSONObject().get("jti");
@@ -93,7 +97,7 @@ public class RefreshService {
                         .build();
             } else
                 throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT));
-        } catch (ParseException | JOSEException e) {
+        } catch (ParseException | JOSEException | BadJWTException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), e);
         }
     }
@@ -101,13 +105,23 @@ public class RefreshService {
     public void revoke(String jwt) {
         try {
             JWSObject jws = JWSObject.parse(jwt);
-            if (!jws.verify(verifier))
+            if (!verify(jws))
                 throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT));
 
             String jti = (String) jws.getPayload().toJSONObject().get("jti");
             repository.deleteByJti(jti);
-        } catch (ParseException | JOSEException e) {
+        } catch (ParseException | JOSEException | BadJWTException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), e);
         }
+    }
+
+    private boolean verify(JWSObject jws) throws JOSEException, ParseException, BadJWTException {
+        DefaultJWTClaimsVerifier<?> claimsVerifier = new DefaultJWTClaimsVerifier<>(
+                new JWTClaimsSet.Builder()
+                        .issuer(Constants.MODULE_DOT_PATH)
+                        .build(),
+                new HashSet<>(Arrays.asList("exp", "jti", "iat")));
+        claimsVerifier.verify(JWTClaimsSet.parse(jws.getPayload().toJSONObject()), null);
+        return jws.verify(verifier);
     }
 }

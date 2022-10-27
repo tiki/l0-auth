@@ -7,7 +7,7 @@ package com.mytiki.l0_auth.features.latest.otp;
 
 import java.time.ZonedDateTime;
 
-public class OtpAOIssueRsp {
+public class OtpAOStartRsp {
     private String deviceId;
     private ZonedDateTime expires;
 

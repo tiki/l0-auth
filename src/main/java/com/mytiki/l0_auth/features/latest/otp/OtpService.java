@@ -50,25 +50,10 @@ public class OtpService {
         this.refreshService = refreshService;
     }
 
-    public OtpAOIssueRsp start(OtpAOIssueReq req) {
+    public OtpAOStartRsp start(OtpAOStartReq req) {
         String deviceId = randomB64(32);
         String code = randomAlphanumeric(6);
-
-        /*String path = "https://mytiki.com/app/bouncer?otp=" + newOtpMap.get(KEY_OTP);
-        HashMap<String, String> templateDataMap = new HashMap<>(1);
-        templateDataMap.put("dynamic-link",
-                "https://mytiki.app/?link=" + URLEncoder.encode(path, StandardCharsets.UTF_8) +
-                        "&apn=com.mytiki.app" +
-                        "&ibi=com.mytiki.app");*/
-
-        Map<String, String> input = new HashMap<>(1);
-        input.put("dynamic-link", code);
-
-        boolean sent = sendgrid.send(req.getEmail(),
-                templates.resovle(OtpConfig.TEMPLATE_SUBJECT, null),
-                templates.resovle(OtpConfig.TEMPLATE_BODY_HTML, input),
-                templates.resovle(OtpConfig.TEMPLATE_BODY_TXT, input));
-        if (sent) {
+        if (sendEmail(req.getEmail(), code)) {
             OtpDO otpDO = new OtpDO();
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
             ZonedDateTime expires = now.plusMinutes(CODE_EXPIRY_DURATION_MINUTES);
@@ -76,7 +61,7 @@ public class OtpService {
             otpDO.setIssued(now);
             otpDO.setExpires(expires);
             repository.save(otpDO);
-            OtpAOIssueRsp rsp = new OtpAOIssueRsp();
+            OtpAOStartRsp rsp = new OtpAOStartRsp();
             rsp.setDeviceId(deviceId);
             rsp.setExpires(expires);
             return rsp;
@@ -119,6 +104,23 @@ public class OtpService {
                     null
             ), e);
         }
+    }
+
+    private boolean sendEmail(String email, String code) {
+        /*String path = "https://mytiki.com/app/bouncer?otp=" + newOtpMap.get(KEY_OTP);
+        HashMap<String, String> templateDataMap = new HashMap<>(1);
+        templateDataMap.put("dynamic-link",
+                "https://mytiki.app/?link=" + URLEncoder.encode(path, StandardCharsets.UTF_8) +
+                        "&apn=com.mytiki.app" +
+                        "&ibi=com.mytiki.app");*/
+
+        Map<String, String> input = new HashMap<>(1);
+        input.put("dynamic-link", code);
+
+        return sendgrid.send(email,
+                templates.resovle(OtpConfig.TEMPLATE_SUBJECT, null),
+                templates.resovle(OtpConfig.TEMPLATE_BODY_HTML, input),
+                templates.resovle(OtpConfig.TEMPLATE_BODY_TXT, input));
     }
 
     private String hashedOtp(String deviceId, String code) {
