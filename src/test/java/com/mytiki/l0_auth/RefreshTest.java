@@ -24,7 +24,6 @@ import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.test.context.ActiveProfiles;
 
-import javax.transaction.Transactional;
 import java.sql.Date;
 import java.text.ParseException;
 import java.time.Instant;
@@ -67,7 +66,6 @@ public class RefreshTest {
     }
 
     @Test
-    @Transactional
     public void Test_Revoke_Success() throws JOSEException, ParseException {
         String jwt = service.token();
         service.revoke(jwt);
@@ -80,7 +78,6 @@ public class RefreshTest {
     }
 
     @Test
-    @Transactional
     public void Test_Revoke_Replay_Success() throws JOSEException, ParseException {
         String jwt = service.token();
         service.revoke(jwt);
@@ -113,7 +110,6 @@ public class RefreshTest {
     }
 
     @Test
-    @Transactional
     public void Test_Authorize_Revoked_Success() throws JOSEException, ParseException {
         String jwt = service.token();
         service.revoke(jwt);
