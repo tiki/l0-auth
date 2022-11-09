@@ -6,12 +6,14 @@
 package com.mytiki.l0_auth.utilities;
 
 import com.nimbusds.jose.jwk.JWKSet;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+@Tag(name = "AUTH")
 @RestController
 @RequestMapping(value = "/.well-known/jwks.json")
 public class JWKS {

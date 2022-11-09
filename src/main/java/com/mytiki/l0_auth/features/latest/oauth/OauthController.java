@@ -9,6 +9,7 @@ import com.mytiki.l0_auth.features.latest.otp.OtpService;
 import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
 import com.mytiki.spring_rest_api.ApiConstants;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
 import org.springframework.security.oauth2.core.*;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "AUTH")
 @RestController
 @RequestMapping(value = OauthController.PATH_CONTROLLER)
 public class OauthController {

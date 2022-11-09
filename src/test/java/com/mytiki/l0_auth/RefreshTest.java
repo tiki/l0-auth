@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
         webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = {App.class}
 )
-@ActiveProfiles(profiles = {"test", "local"})
+@ActiveProfiles(profiles = {"ci", "local"})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RefreshTest {
