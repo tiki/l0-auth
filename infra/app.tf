@@ -7,9 +7,8 @@ resource "digitalocean_app" "l0-auth-app" {
     region = local.region
 
     domain {
-      name = "l0-auth.mytiki.com"
+      name = "auth.l0.mytiki.com"
       type = "PRIMARY"
-      zone = "l0-auth.mytiki.com"
     }
 
     service {
