@@ -13,7 +13,7 @@ resource "digitalocean_database_cluster" "db-cluster-l0-auth" {
 
 resource "digitalocean_database_db" "db-l0-auth" {
   cluster_id = digitalocean_database_cluster.db-cluster-l0-auth.id
-  name       = "l0-auth"
+  name       = "l0_auth"
 }
 
 resource "digitalocean_database_firewall" "db-cluster-l0-auth-fw" {
