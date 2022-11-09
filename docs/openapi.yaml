@@ -1,0 +1,329 @@
+openapi: 3.0.1
+info:
+  title: L0 Storage
+  description: Long term immutable block storage
+  license:
+    name: MIT
+    url: https://github.com/tiki/l0-storage/blob/main/LICENSE
+  version: 0.0.10
+servers:
+- url: https://storage.l0.mytiki.com
+paths:
+  /api/latest/upload:
+    post:
+      tags:
+      - UPLOAD
+      operationId: post
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              required:
+              - content-md5
+              - content-type
+              - file
+              - key
+              - policy
+              - x-amz-algorithm
+              - x-amz-credential
+              - x-amz-date
+              - x-amz-object-lock-mode
+              - x-amz-object-lock-retain-until-date
+              - x-amz-signature
+              type: object
+              properties:
+                policy:
+                  type: string
+                content-type:
+                  type: string
+                x-amz-credential:
+                  type: string
+                x-amz-algorithm:
+                  type: string
+                x-amz-date:
+                  type: string
+                x-amz-signature:
+                  type: string
+                x-amz-object-lock-mode:
+                  type: string
+                x-amz-object-lock-retain-until-date:
+                  type: string
+                key:
+                  type: string
+                content-md5:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "204":
+          description: No Content
+  /api/latest/usage:
+    post:
+      tags:
+      - USAGE
+      summary: Submit a usage report
+      operationId: post_1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsageAOReq'
+        required: true
+      responses:
+        "204":
+          description: No Content
+        "403":
+          description: Forbidden
+      security:
+      - remote: []
+  /api/latest/policy:
+    post:
+      tags:
+      - POLICY
+      summary: Request a new policy
+      operationId: post_2
+      parameters:
+      - name: x-api-id
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyAOReq'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyAORsp'
+        "400":
+          description: Bad Request
+        "403":
+          description: Forbidden
+        "417":
+          description: Expectation Failed
+      security:
+      - apiId: []
+  /api/latest/api-id/new:
+    post:
+      tags:
+      - API ID
+      summary: Request a new API Id
+      operationId: postNew
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiIdAORsp'
+      security:
+      - jwt: []
+  /health:
+    get:
+      tags:
+      - HEALTH
+      operationId: get
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+              example:
+                message: OK
+  /api/latest/api-id:
+    get:
+      tags:
+      - API ID
+      summary: Get all provisioned API Ids
+      operationId: getAll
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          default: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiPageApiIdAORsp'
+      security:
+      - jwt: []
+  /api/latest/api-id/id/{api-id}:
+    get:
+      tags:
+      - API ID
+      summary: Get an API Id's properties
+      operationId: getKey
+      parameters:
+      - name: api-id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiIdAORsp'
+        "404":
+          description: Not Found
+      security:
+      - jwt: []
+    delete:
+      tags:
+      - API ID
+      summary: Revoke an API Id (permanent)
+      operationId: deleteKey
+      parameters:
+      - name: api-id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiIdAORsp'
+        "404":
+          description: Not Found
+      security:
+      - jwt: []
+components:
+  schemas:
+    UsageAOReq:
+      type: object
+      properties:
+        path:
+          type: string
+        sizeBytes:
+          type: integer
+          format: int64
+    PolicyAORsp:
+      type: object
+      properties:
+        expires:
+          type: string
+        keyPrefix:
+          type: string
+        maxBytes:
+          type: integer
+          format: int64
+        compute:
+          type: array
+          items:
+            type: string
+        fields:
+          $ref: '#/components/schemas/PolicyAORspFields'
+    PolicyAORspFields:
+      type: object
+      properties:
+        policy:
+          type: string
+        content-type:
+          type: string
+        x-amz-credential:
+          type: string
+        x-amz-algorithm:
+          type: string
+        x-amz-date:
+          type: string
+        x-amz-signature:
+          type: string
+        x-amz-object-lock-mode:
+          type: string
+        x-amz-object-lock-retain-until-date:
+          type: string
+    PolicyAOReq:
+      type: object
+      properties:
+        pubKey:
+          type: string
+        signature:
+          type: string
+        stringToSign:
+          type: string
+    ApiIdAORsp:
+      type: object
+      properties:
+        apiId:
+          type: string
+        valid:
+          type: boolean
+        created:
+          type: string
+          format: date-time
+        modified:
+          type: string
+          format: date-time
+    ApiError:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+        detail:
+          type: string
+        help:
+          type: string
+        properties:
+          type: object
+          additionalProperties:
+            type: string
+    ApiPageApiIdAORsp:
+      type: object
+      properties:
+        elements:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiIdAORsp'
+        size:
+          type: integer
+          format: int32
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+          format: int32
+        page:
+          type: integer
+          format: int32
+  securitySchemes:
+    remote:
+      type: http
+      scheme: basic
+    apiId:
+      type: apiKey
+      name: X-API-ID
+      in: header
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
