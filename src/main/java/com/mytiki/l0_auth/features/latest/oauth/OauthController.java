@@ -46,7 +46,7 @@ public class OauthController {
             @RequestParam(required = false) String scope,
             @RequestParam(name = "username") String deviceId,
             @RequestParam(name = "password") String code,
-            @RequestParam List<String> audience) {
+            @RequestParam(required = false) List<String> audience) {
         if (!grantType.equals(AuthorizationGrantType.PASSWORD))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
         return otpService.authorize(deviceId, code, audience);
@@ -59,9 +59,7 @@ public class OauthController {
             params = {"refresh_token"})
     public OAuth2AccessTokenResponse tokenGrantRefresh(
             @RequestParam(name = "grant_type") AuthorizationGrantType grantType,
-            @RequestParam(required = false) String scope,
-            @RequestParam(name = "refresh_token") String refreshToken,
-            @RequestParam List<String> audience) {
+            @RequestParam(name = "refresh_token") String refreshToken) {
         if (!grantType.equals(AuthorizationGrantType.REFRESH_TOKEN))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
         return refreshService.authorize(refreshToken);
@@ -76,7 +74,7 @@ public class OauthController {
             @RequestParam(name = "grant_type") AuthorizationGrantType grantType,
             @RequestParam(required = false) String scope,
             @RequestParam String assertion,
-            @RequestParam List<String> audience) {
+            @RequestParam(required = false) List<String> audience) {
         if (!grantType.equals(AuthorizationGrantType.JWT_BEARER))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
 
