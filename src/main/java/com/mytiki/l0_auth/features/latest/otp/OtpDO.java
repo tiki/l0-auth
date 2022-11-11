@@ -19,6 +19,8 @@ public class OtpDO implements Serializable {
     private ZonedDateTime issued;
     private ZonedDateTime expires;
 
+    private String email;
+
     @Id
     @Column(name = "otp_hashed")
     public String getOtpHashed() {
@@ -45,5 +47,14 @@ public class OtpDO implements Serializable {
 
     public void setExpires(ZonedDateTime expires) {
         this.expires = expires;
+    }
+
+    @Column(name = "email")
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

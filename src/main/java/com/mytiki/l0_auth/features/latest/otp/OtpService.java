@@ -6,12 +6,15 @@
 package com.mytiki.l0_auth.features.latest.otp;
 
 import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
+import com.mytiki.l0_auth.features.latest.user_info.UserInfoDO;
+import com.mytiki.l0_auth.features.latest.user_info.UserInfoService;
 import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.l0_auth.utilities.Mustache;
 import com.mytiki.l0_auth.utilities.Sendgrid;
 import com.mytiki.spring_rest_api.ApiExceptionBuilder;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
@@ -36,18 +39,21 @@ public class OtpService {
     private final Sendgrid sendgrid;
     private final JWSSigner signer;
     private final RefreshService refreshService;
+    private final UserInfoService userInfoService;
 
     public OtpService(
             OtpRepository repository,
             Mustache templates,
             Sendgrid sendgrid,
             JWSSigner signer,
-            RefreshService refreshService) {
+            RefreshService refreshService,
+            UserInfoService userInfoService) {
         this.repository = repository;
         this.templates = templates;
         this.sendgrid = sendgrid;
         this.signer = signer;
         this.refreshService = refreshService;
+        this.userInfoService = userInfoService;
     }
 
     public OtpAOStartRsp start(OtpAOStartReq req) {
@@ -60,6 +66,7 @@ public class OtpService {
             otpDO.setOtpHashed(hashedOtp(deviceId, code));
             otpDO.setIssued(now);
             otpDO.setExpires(expires);
+            if(req.isNotAnonymous()) otpDO.setEmail(req.getEmail());
             repository.save(otpDO);
             OtpAOStartRsp rsp = new OtpAOStartRsp();
             rsp.setDeviceId(deviceId);
@@ -90,8 +97,13 @@ public class OtpService {
                     null
             ));
         try {
+            String subject = null;
+            if(found.get().getEmail() != null) {
+                UserInfoDO userInfo = userInfoService.createIfNotExists(found.get().getEmail());
+                subject = userInfo.getUid();
+            }
             return OAuth2AccessTokenResponse
-                    .withToken(token(Constants.TOKEN_EXPIRY_DURATION_SECONDS))
+                    .withToken(token(Constants.TOKEN_EXPIRY_DURATION_SECONDS, subject))
                     .tokenType(OAuth2AccessToken.TokenType.BEARER)
                     .expiresIn(Constants.TOKEN_EXPIRY_DURATION_SECONDS)
                     //.scopes()
@@ -113,6 +125,11 @@ public class OtpService {
                 "https://mytiki.app/?link=" + URLEncoder.encode(path, StandardCharsets.UTF_8) +
                         "&apn=com.mytiki.app" +
                         "&ibi=com.mytiki.app");*/
+
+        if(!EmailValidator.getInstance().isValid(email))
+            throw new ApiExceptionBuilder(HttpStatus.BAD_REQUEST)
+                    .message("Invalid email")
+                    .build();
 
         Map<String, String> input = new HashMap<>(1);
         input.put("dynamic-link", code);
@@ -166,7 +183,7 @@ public class OtpService {
         }
     }
 
-    private String token(long expiresIn) throws JOSEException {
+    private String token(long expiresIn, String subject) throws JOSEException {
         Instant iat = Instant.now();
         JWSObject token = new JWSObject(
                 new JWSHeader
@@ -178,6 +195,7 @@ public class OtpService {
                                 .issuer(Constants.MODULE_DOT_PATH)
                                 .issueTime(Date.from(iat))
                                 .expirationTime(Date.from(iat.plusSeconds(expiresIn)))
+                                .subject(subject)
                                 .build()
                                 .toJSONObject()
                 ));

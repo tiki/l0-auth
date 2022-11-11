@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) TIKI Inc.
+ * MIT license. See LICENSE file in root directory.
+ */
+
+package com.mytiki.l0_auth.features.latest.user_info;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.time.ZonedDateTime;
+
+@Entity
+@Table(name = "user_info")
+public class UserInfoDO {
+    private String uid;
+    private String email;
+    private ZonedDateTime created;
+    private ZonedDateTime modified;
+
+    @Id
+    @Column(name = "uid")
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
+    @Column(name = "email")
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Column(name = "created_utc")
+    public ZonedDateTime getCreated() {
+        return created;
+    }
+
+    public void setCreated(ZonedDateTime created) {
+        this.created = created;
+    }
+
+    @Column(name = "modified_utc")
+    public ZonedDateTime getModified() {
+        return modified;
+    }
+
+    public void setModified(ZonedDateTime modified) {
+        this.modified = modified;
+    }
+}

@@ -9,6 +9,8 @@ import com.mytiki.l0_auth.features.latest.otp.OtpAOStartReq;
 import com.mytiki.l0_auth.features.latest.otp.OtpAOStartRsp;
 import com.mytiki.l0_auth.features.latest.otp.OtpRepository;
 import com.mytiki.l0_auth.features.latest.otp.OtpService;
+import com.mytiki.l0_auth.features.latest.user_info.UserInfoAO;
+import com.mytiki.l0_auth.features.latest.user_info.UserInfoService;
 import com.mytiki.l0_auth.main.App;
 import com.mytiki.l0_auth.utilities.Sendgrid;
 import com.mytiki.spring_rest_api.ApiException;
@@ -52,11 +54,14 @@ public class OtpTest {
     @Autowired
     private OtpRepository repository;
 
+    @Autowired
+    private UserInfoService userInfoService;
+
     @Test
     public void Test_Start_Success() {
         Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
 
-        OtpAOStartReq req = new OtpAOStartReq("test@test.com");
+        OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
         OtpAOStartRsp rsp = service.start(req);
 
         assertNotNull(rsp.getDeviceId());
@@ -67,7 +72,7 @@ public class OtpTest {
     public void Test_Start_Send_Failure() {
         Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), anyString())).thenReturn(false);
 
-        OtpAOStartReq req = new OtpAOStartReq("test@test.com");
+        OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
 
         ApiException ex = assertThrows(ApiException.class,
                 () -> service.start(req));
@@ -78,7 +83,7 @@ public class OtpTest {
     public void Test_Authorize_Success() {
         ArgumentCaptor<String> param = ArgumentCaptor.forClass(String.class);
         Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), param.capture())).thenReturn(true);
-        OtpAOStartReq req = new OtpAOStartReq("test@test.com");
+        OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
         OtpAOStartRsp rsp = service.start(req);
 
         String code = param.getValue().substring(139, 145);
@@ -97,7 +102,7 @@ public class OtpTest {
         ArgumentCaptor<String> param = ArgumentCaptor.forClass(String.class);
         Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), param.capture())).thenReturn(true);
 
-        OtpAOStartReq req = new OtpAOStartReq("test@test.com");
+        OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
         service.start(req);
         String code = param.getValue().substring(139, 145);
 
@@ -110,11 +115,55 @@ public class OtpTest {
     public void Test_Authorize_Bad_Code_Failure() {
         Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), anyString())).thenReturn(true);
 
-        OtpAOStartReq req = new OtpAOStartReq("test@test.com");
+        OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
         OtpAOStartRsp rsp = service.start(req);
 
         OAuth2AuthorizationException ex = assertThrows(OAuth2AuthorizationException.class,
                 () -> service.authorize(rsp.getDeviceId(), UUID.randomUUID().toString()));
         assertEquals(ex.getError().getErrorCode(), OAuth2ErrorCodes.ACCESS_DENIED);
+    }
+
+    @Test
+    public void Test_Authorize_Not_Anonymous_Success() {
+        ArgumentCaptor<String> param = ArgumentCaptor.forClass(String.class);
+        Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), param.capture())).thenReturn(true);
+        String testEmail = UUID.randomUUID() + "@test.com";
+        OtpAOStartReq req = new OtpAOStartReq(testEmail, true);
+        OtpAOStartRsp rsp = service.start(req);
+
+        String code = param.getValue().substring(139, 145);
+        OAuth2AccessTokenResponse token = service.authorize(rsp.getDeviceId(), code);
+
+        assertNotNull(token.getAccessToken().getTokenValue());
+        assertEquals(OAuth2AccessToken.TokenType.BEARER, token.getAccessToken().getTokenType());
+        assertNotNull(token.getRefreshToken());
+        assertNotNull(token.getRefreshToken().getTokenValue());
+        assertNotNull(token.getAccessToken().getExpiresAt());
+        assertTrue(token.getAccessToken().getExpiresAt().isAfter(Instant.now()));
+
+        UserInfoAO userInfo = userInfoService.get(token.getAccessToken().getTokenValue());
+        assertEquals(testEmail, userInfo.getEmail());
+    }
+
+    @Test
+    public void Test_Authorize_Not_Anonymous_Login_Success() {
+        ArgumentCaptor<String> param = ArgumentCaptor.forClass(String.class);
+        Mockito.when(mockSendgrid.send(anyString(), anyString(), anyString(), param.capture())).thenReturn(true);
+
+        String testEmail = UUID.randomUUID() + "@test.com";
+        OtpAOStartReq req = new OtpAOStartReq(testEmail, true);
+        OtpAOStartRsp rsp = service.start(req);
+
+        String code = param.getValue().substring(139, 145);
+        OAuth2AccessTokenResponse token = service.authorize(rsp.getDeviceId(), code);
+
+        req = new OtpAOStartReq(testEmail, true);
+        rsp = service.start(req);
+
+        code = param.getValue().substring(139, 145);
+        token = service.authorize(rsp.getDeviceId(), code);
+
+        UserInfoAO userInfo = userInfoService.get(token.getAccessToken().getTokenValue());
+        assertEquals(testEmail, userInfo.getEmail());
     }
 }
