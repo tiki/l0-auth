@@ -11,9 +11,10 @@ import org.springframework.stereotype.Repository;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
-public interface RefreshRepository extends JpaRepository<RefreshDO, String> {
+public interface RefreshRepository extends JpaRepository<RefreshDO, UUID> {
     Optional<RefreshDO> findByJti(String jti);
 
     void deleteByJti(String jti);
