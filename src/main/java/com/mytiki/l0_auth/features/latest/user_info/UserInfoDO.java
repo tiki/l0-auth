@@ -22,6 +22,7 @@ public class UserInfoDO {
 
     @Id
     @Column(name = "uid")
+    @org.hibernate.annotations.Type(type="org.hibernate.type.PostgresUUIDType")
     public UUID getUid() {
         return uid;
     }

@@ -22,6 +22,7 @@ public class RefreshDO implements Serializable {
 
     @Id
     @Column(name = "jti")
+    @org.hibernate.annotations.Type(type="org.hibernate.type.PostgresUUIDType")
     public UUID getJti() {
         return jti;
     }
