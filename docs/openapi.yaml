@@ -5,7 +5,7 @@ info:
   license:
     name: MIT
     url: https://github.com/tiki/l0-auth/blob/main/LICENSE
-  version: 0.0.1
+  version: 0.0.2
 servers:
 - url: https://auth.l0.mytiki.com
 paths:
@@ -93,6 +93,13 @@ paths:
         required: true
         schema:
           type: string
+      - name: audience
+        in: query
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
       - name: refresh_token
         in: query
         required: true
