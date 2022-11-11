@@ -8,9 +8,7 @@ package com.mytiki.l0_auth.utilities;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
@@ -77,14 +75,6 @@ public class UtilitiesConfig {
     }
 
     @Bean
-    public JWSVerifier jwsVerifier(
-            @Autowired JWKSet jwkSet,
-            @Value("${com.mytiki.l0_auth.jwt.kid}") String kid)
-            throws JOSEException {
-        return new ECDSAVerifier(jwkSet.getKeyByKeyId(kid).toECKey().toECPublicKey());
-    }
-
-    @Bean
     public JwtDecoder jwtDecoder(
             @Autowired JWKSet jwkSet,
             @Value("${com.mytiki.l0_auth.jwt.kid}") String kid) {
@@ -94,7 +84,6 @@ public class UtilitiesConfig {
                 new JWSVerificationKeySelector<>(JWSAlgorithm.ES256, immutableJWKSet));
         return new NimbusJwtDecoder(jwtProcessor);
     }
-
 
     private ECPrivateKey privateKey(KeyFactory keyFactory, String pkcs8) throws InvalidKeySpecException {
         EncodedKeySpec encodedKeySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(pkcs8));

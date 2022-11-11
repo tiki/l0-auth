@@ -29,11 +29,10 @@ public class UserInfoService {
 
     public UserInfoAO get(String token){
         Jwt jwt = jwtDecoder.decode(token);
-        String sub = jwt.getClaim("sub");
-        if(sub == null)
+        if(jwt.getSubject() == null)
             throw new ApiException(HttpStatus.FORBIDDEN);
 
-        Optional<UserInfoDO> found = repository.findByUid(sub);
+        Optional<UserInfoDO> found = repository.findByUid(jwt.getSubject());
         UserInfoAO rsp = new UserInfoAO();
         if(found.isPresent()){
             rsp.setSub(found.get().getUid());
@@ -60,9 +59,7 @@ public class UserInfoService {
 
     public UserInfoAO update(String token, UserInfoAOUpdate update){
         Jwt jwt = jwtDecoder.decode(token);
-        String sub = jwt.getClaim("sub");
-
-        Optional<UserInfoDO> found = repository.findByUid(sub);
+        Optional<UserInfoDO> found = repository.findByUid(jwt.getSubject());
         if(found.isEmpty())
             throw new ApiExceptionBuilder(HttpStatus.BAD_REQUEST)
                     .message("Invalid sub claim")

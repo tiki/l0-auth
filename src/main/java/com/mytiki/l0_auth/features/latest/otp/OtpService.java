@@ -80,7 +80,7 @@ public class OtpService {
         }
     }
 
-    public OAuth2AccessTokenResponse authorize(String deviceId, String code) {
+    public OAuth2AccessTokenResponse authorize(String deviceId, String code, List<String> audience) {
         String hashedOtp = hashedOtp(deviceId, code);
         Optional<OtpDO> found = repository.findByOtpHashed(hashedOtp);
         if (found.isEmpty())
@@ -102,12 +102,18 @@ public class OtpService {
                 UserInfoDO userInfo = userInfoService.createIfNotExists(found.get().getEmail());
                 subject = userInfo.getUid();
             }
+
+            if(audience != null && audience.contains("storage.l0.mytiki.com") && subject == null)
+                throw new OAuth2AuthorizationException(new OAuth2Error(
+                        OAuth2ErrorCodes.ACCESS_DENIED),
+                        "storage.l0.mytiki.com does not support anonymous subjects");
+
             return OAuth2AccessTokenResponse
-                    .withToken(token(Constants.TOKEN_EXPIRY_DURATION_SECONDS, subject))
+                    .withToken(token(Constants.TOKEN_EXPIRY_DURATION_SECONDS, subject, audience))
                     .tokenType(OAuth2AccessToken.TokenType.BEARER)
                     .expiresIn(Constants.TOKEN_EXPIRY_DURATION_SECONDS)
                     //.scopes()
-                    .refreshToken(refreshService.token())
+                    .refreshToken(refreshService.token(subject, audience))
                     .build();
         } catch (JOSEException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(
@@ -183,7 +189,7 @@ public class OtpService {
         }
     }
 
-    private String token(long expiresIn, String subject) throws JOSEException {
+    private String token(long expiresIn, String sub, List<String> aud) throws JOSEException {
         Instant iat = Instant.now();
         JWSObject token = new JWSObject(
                 new JWSHeader
@@ -195,7 +201,8 @@ public class OtpService {
                                 .issuer(Constants.MODULE_DOT_PATH)
                                 .issueTime(Date.from(iat))
                                 .expirationTime(Date.from(iat.plusSeconds(expiresIn)))
-                                .subject(subject)
+                                .subject(sub)
+                                .audience(aud)
                                 .build()
                                 .toJSONObject()
                 ));

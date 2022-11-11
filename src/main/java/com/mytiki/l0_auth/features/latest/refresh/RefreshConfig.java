@@ -7,11 +7,11 @@ package com.mytiki.l0_auth.features.latest.refresh;
 
 import com.mytiki.l0_auth.utilities.Constants;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.JWSVerifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @EnableJpaRepositories(RefreshConfig.PACKAGE_PATH)
 @EntityScan(RefreshConfig.PACKAGE_PATH)
@@ -21,8 +21,8 @@ public class RefreshConfig {
     @Bean
     public RefreshService refreshService(
             @Autowired RefreshRepository repository,
-            @Autowired JWSSigner signer,
-            @Autowired JWSVerifier verifier) {
-        return new RefreshService(repository, signer, verifier);
+            @Autowired JWSSigner jwsSigner,
+            @Autowired JwtDecoder jwtDecoder) {
+        return new RefreshService(repository, jwsSigner, jwtDecoder);
     }
 }

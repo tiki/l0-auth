@@ -22,12 +22,15 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.sql.Date;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -51,14 +54,16 @@ public class RefreshTest {
     @Autowired
     private JWSSigner signer;
 
+    @Autowired
+    private JwtDecoder jwtDecoder;
+
     @Test
     public void Test_Token_Success() throws JOSEException, ParseException {
-        String jwt = service.token();
-        assertNotNull(jwt);
+        String token = service.token(null, null);
+        assertNotNull(token);
 
-        JWSObject jws = JWSObject.parse(jwt);
-        String jti = (String) jws.getPayload().toJSONObject().get("jti");
-        Optional<RefreshDO> found = repository.findByJti(jti);
+        Jwt jwt = jwtDecoder.decode(token);
+        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
 
         assertTrue(found.isPresent());
         assertNotNull(found.get().getIssued());
@@ -67,60 +72,54 @@ public class RefreshTest {
 
     @Test
     public void Test_Revoke_Success() throws JOSEException, ParseException {
-        String jwt = service.token();
-        service.revoke(jwt);
+        String token = service.token(null, null);
+        service.revoke(token);
 
-        JWSObject jws = JWSObject.parse(jwt);
-        String jti = (String) jws.getPayload().toJSONObject().get("jti");
-        Optional<RefreshDO> found = repository.findByJti(jti);
-
+        Jwt jwt = jwtDecoder.decode(token);
+        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
         assertTrue(found.isEmpty());
     }
 
     @Test
     public void Test_Revoke_Replay_Success() throws JOSEException, ParseException {
-        String jwt = service.token();
-        service.revoke(jwt);
-        service.revoke(jwt);
+        String token = service.token(null, null);
+        service.revoke(token);
+        service.revoke(token);
 
-        JWSObject jws = JWSObject.parse(jwt);
-        String jti = (String) jws.getPayload().toJSONObject().get("jti");
-        Optional<RefreshDO> found = repository.findByJti(jti);
-
+        Jwt jwt = jwtDecoder.decode(token);
+        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
         assertTrue(found.isEmpty());
     }
 
     @Test
     public void Test_Authorize_Success() throws JOSEException, ParseException {
-        String jwt = service.token();
+        String token = service.token(null, null);
 
-        OAuth2AccessTokenResponse token = service.authorize(jwt);
-        assertNotNull(token.getAccessToken().getTokenValue());
-        assertEquals(OAuth2AccessToken.TokenType.BEARER, token.getAccessToken().getTokenType());
-        assertNotNull(token.getRefreshToken());
-        assertNotNull(token.getRefreshToken().getTokenValue());
-        assertNotNull(token.getAccessToken().getExpiresAt());
-        assertTrue(token.getAccessToken().getExpiresAt().isAfter(Instant.now()));
+        OAuth2AccessTokenResponse rsp = service.authorize(token);
+        assertNotNull(rsp.getAccessToken().getTokenValue());
+        assertEquals(OAuth2AccessToken.TokenType.BEARER, rsp.getAccessToken().getTokenType());
+        assertNotNull(rsp.getRefreshToken());
+        assertNotNull(rsp.getRefreshToken().getTokenValue());
+        assertNotNull(rsp.getAccessToken().getExpiresAt());
+        assertTrue(rsp.getAccessToken().getExpiresAt().isAfter(Instant.now()));
 
-        JWSObject jws = JWSObject.parse(jwt);
-        String jti = (String) jws.getPayload().toJSONObject().get("jti");
-        Optional<RefreshDO> found = repository.findByJti(jti);
-
+        Jwt jwt = jwtDecoder.decode(token);
+        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
         assertTrue(found.isEmpty());
     }
 
     @Test
-    public void Test_Authorize_Revoked_Success() throws JOSEException, ParseException {
-        String jwt = service.token();
-        service.revoke(jwt);
+    public void Test_Authorize_Revoked_Success() throws JOSEException {
+        String token = service.token(null, null);
+        service.revoke(token);
 
         OAuth2AuthorizationException ex = assertThrows(OAuth2AuthorizationException.class,
-                () -> service.authorize(jwt));
+                () -> service.authorize(token));
         assertEquals(ex.getError().getErrorCode(), OAuth2ErrorCodes.INVALID_GRANT);
     }
 
     @Test
-    public void Test_Authorize_Expired_Success() throws JOSEException, ParseException, InterruptedException {
+    public void Test_Authorize_Expired_Success() throws JOSEException {
         JWSObject jws = new JWSObject(
                 new JWSHeader
                         .Builder(JWSAlgorithm.ES256)
@@ -141,5 +140,25 @@ public class RefreshTest {
         OAuth2AuthorizationException ex = assertThrows(OAuth2AuthorizationException.class,
                 () -> service.authorize(jwt));
         assertEquals(ex.getError().getErrorCode(), OAuth2ErrorCodes.INVALID_GRANT);
+    }
+
+    @Test
+    public void Test_Authorize_Audience_Success() throws JOSEException, ParseException {
+        String audience = "storage.l0.mytiki.com";
+        String token = service.token(null, List.of(audience));
+
+        OAuth2AccessTokenResponse rsp = service.authorize(token);
+        Jwt jwt = jwtDecoder.decode(rsp.getAccessToken().getTokenValue());
+        assertTrue(jwt.getAudience().contains(audience));
+    }
+
+    @Test
+    public void Test_Authorize_Subject_Success() throws JOSEException, ParseException {
+        String subject = UUID.randomUUID().toString();
+        String token = service.token(subject, null);
+
+        OAuth2AccessTokenResponse rsp = service.authorize(token);
+        Jwt jwt = jwtDecoder.decode(rsp.getAccessToken().getTokenValue());
+        assertEquals(subject, jwt.getSubject());
     }
 }
