@@ -8,36 +8,35 @@ package com.mytiki.l0_auth.features.latest.refresh;
 import com.mytiki.l0_auth.utilities.Constants;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.proc.BadJWTException;
-import com.nimbusds.jwt.proc.DefaultJWTClaimsVerifier;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.JwtException;
 
 import javax.transaction.Transactional;
 import java.sql.Date;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public class RefreshService {
     private final RefreshRepository repository;
-    private final JWSSigner signer;
-    private final JWSVerifier verifier;
+    private final JWSSigner jwtSigner;
+    private final JwtDecoder jwtDecoder;
 
-    public RefreshService(RefreshRepository repository, JWSSigner signer, JWSVerifier verifier) {
+    public RefreshService(RefreshRepository repository, JWSSigner jwtSigner, JwtDecoder jwtDecoder) {
         this.repository = repository;
-        this.signer = signer;
-        this.verifier = verifier;
+        this.jwtSigner = jwtSigner;
+        this.jwtDecoder = jwtDecoder;
     }
 
-    public String token() throws JOSEException {
+    public String token(String sub, List<String> aud) throws JOSEException {
         RefreshDO refreshDO = new RefreshDO();
         ZonedDateTime now = ZonedDateTime.now();
 
@@ -56,23 +55,21 @@ public class RefreshService {
                                 .issuer(Constants.MODULE_DOT_PATH)
                                 .issueTime(Date.from(refreshDO.getIssued().toInstant()))
                                 .expirationTime(Date.from(refreshDO.getExpires().toInstant()))
+                                .subject(sub)
+                                .audience(aud)
                                 .jwtID(refreshDO.getJti())
                                 .build()
                                 .toJSONObject()
                 ));
 
-        jwsObject.sign(signer);
+        jwsObject.sign(jwtSigner);
         return jwsObject.serialize();
     }
 
-    public OAuth2AccessTokenResponse authorize(String jwt) {
+    public OAuth2AccessTokenResponse authorize(String token) {
         try {
-            JWSObject jws = JWSObject.parse(jwt);
-            if (!verify(jws))
-                throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT));
-
-            String jti = (String) jws.getPayload().toJSONObject().get("jti");
-            Optional<RefreshDO> found = repository.findByJti(jti);
+            Jwt jwt = jwtDecoder.decode(token);
+            Optional<RefreshDO> found = repository.findByJti(jwt.getId());
             if (found.isPresent()) {
                 repository.delete(found.get());
                 Instant iat = Instant.now();
@@ -85,45 +82,33 @@ public class RefreshService {
                                 new JWTClaimsSet.Builder()
                                         .issuer(Constants.MODULE_DOT_PATH)
                                         .issueTime(Date.from(iat))
+                                        .subject(jwt.getSubject())
+                                        .audience(jwt.getAudience())
                                         .expirationTime(Date.from(iat.plusSeconds(Constants.TOKEN_EXPIRY_DURATION_SECONDS)))
                                         .build()
                                         .toJSONObject()
                         ));
-                accessToken.sign(signer);
+                accessToken.sign(jwtSigner);
                 return OAuth2AccessTokenResponse
                         .withToken(accessToken.serialize())
                         .tokenType(OAuth2AccessToken.TokenType.BEARER)
-                        .refreshToken(token())
+                        .refreshToken(token(jwt.getSubject(), jwt.getAudience()))
                         .expiresIn(Constants.TOKEN_EXPIRY_DURATION_SECONDS)
                         .build();
             } else
                 throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT));
-        } catch (ParseException | JOSEException | BadJWTException e) {
+        } catch (JOSEException | JwtException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), e);
         }
     }
 
     @Transactional
-    public void revoke(String jwt) {
+    public void revoke(String token) {
         try {
-            JWSObject jws = JWSObject.parse(jwt);
-            if (!verify(jws))
-                throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT));
-
-            String jti = (String) jws.getPayload().toJSONObject().get("jti");
-            repository.deleteByJti(jti);
-        } catch (ParseException | JOSEException | BadJWTException e) {
+            Jwt jwt = jwtDecoder.decode(token);
+            repository.deleteByJti(jwt.getId());
+        } catch (JwtException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), e);
         }
-    }
-
-    private boolean verify(JWSObject jws) throws JOSEException, ParseException, BadJWTException {
-        DefaultJWTClaimsVerifier<?> claimsVerifier = new DefaultJWTClaimsVerifier<>(
-                new JWTClaimsSet.Builder()
-                        .issuer(Constants.MODULE_DOT_PATH)
-                        .build(),
-                new HashSet<>(Arrays.asList("exp", "jti", "iat")));
-        claimsVerifier.verify(JWTClaimsSet.parse(jws.getPayload().toJSONObject()), null);
-        return jws.verify(verifier);
     }
 }

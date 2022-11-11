@@ -11,12 +11,17 @@ import com.mytiki.spring_rest_api.ApiConstants;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
-import org.springframework.security.oauth2.core.*;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2ErrorCodes;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenResponse;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @Tag(name = "AUTH")
 @RestController
@@ -40,10 +45,11 @@ public class OauthController {
             @RequestParam(name = "grant_type") AuthorizationGrantType grantType,
             @RequestParam(required = false) String scope,
             @RequestParam(name = "username") String deviceId,
-            @RequestParam(name = "password") String code) {
+            @RequestParam(name = "password") String code,
+            @RequestParam List<String> audience) {
         if (!grantType.equals(AuthorizationGrantType.PASSWORD))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
-        return otpService.authorize(deviceId, code);
+        return otpService.authorize(deviceId, code, audience);
     }
 
     @RequestMapping(
@@ -54,7 +60,8 @@ public class OauthController {
     public OAuth2AccessTokenResponse tokenGrantRefresh(
             @RequestParam(name = "grant_type") AuthorizationGrantType grantType,
             @RequestParam(required = false) String scope,
-            @RequestParam(name = "refresh_token") String refreshToken) {
+            @RequestParam(name = "refresh_token") String refreshToken,
+            @RequestParam List<String> audience) {
         if (!grantType.equals(AuthorizationGrantType.REFRESH_TOKEN))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
         return refreshService.authorize(refreshToken);
@@ -68,13 +75,13 @@ public class OauthController {
     public OAuth2AccessTokenResponse tokenGrantJwt(
             @RequestParam(name = "grant_type") AuthorizationGrantType grantType,
             @RequestParam(required = false) String scope,
-            @RequestParam String assertion) {
+            @RequestParam String assertion,
+            @RequestParam List<String> audience) {
         if (!grantType.equals(AuthorizationGrantType.JWT_BEARER))
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
-        return OAuth2AccessTokenResponse
-                .withToken(assertion)
-                .tokenType(OAuth2AccessToken.TokenType.BEARER)
-                .build();
+
+        //TODO NEEDS IMPLEMENTATION
+        throw  new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
     }
 
     @ApiResponse(responseCode = "200")

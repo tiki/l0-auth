@@ -6,14 +6,17 @@
 package com.mytiki.l0_auth.utilities;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSSigner;
-import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
+import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import com.nimbusds.jose.proc.JWSVerificationKeySelector;
+import com.nimbusds.jose.proc.SecurityContext;
+import com.nimbusds.jwt.proc.DefaultJWTProcessor;
 import org.bouncycastle.jcajce.provider.asymmetric.util.EC5Util;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
@@ -24,6 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -70,11 +75,14 @@ public class UtilitiesConfig {
     }
 
     @Bean
-    public JWSVerifier jwsVerifier(
+    public JwtDecoder jwtDecoder(
             @Autowired JWKSet jwkSet,
-            @Value("${com.mytiki.l0_auth.jwt.kid}") String kid)
-            throws JOSEException {
-        return new ECDSAVerifier(jwkSet.getKeyByKeyId(kid).toECKey().toECPublicKey());
+            @Value("${com.mytiki.l0_auth.jwt.kid}") String kid) {
+        DefaultJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
+        ImmutableJWKSet<SecurityContext> immutableJWKSet = new ImmutableJWKSet<>(jwkSet);
+        jwtProcessor.setJWSKeySelector(
+                new JWSVerificationKeySelector<>(JWSAlgorithm.ES256, immutableJWKSet));
+        return new NimbusJwtDecoder(jwtProcessor);
     }
 
     private ECPrivateKey privateKey(KeyFactory keyFactory, String pkcs8) throws InvalidKeySpecException {

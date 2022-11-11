@@ -5,10 +5,50 @@ info:
   license:
     name: MIT
     url: https://github.com/tiki/l0-auth/blob/main/LICENSE
-  version: 0.0.1
+  version: 0.0.2
 servers:
 - url: https://auth.l0.mytiki.com
 paths:
+  /api/latest/userinfo:
+    get:
+      tags:
+      - AUTH
+      operationId: get_1
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoAO'
+    post:
+      tags:
+      - AUTH
+      operationId: update
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInfoAOUpdate'
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoAO'
   /api/latest/otp/start:
     post:
       tags:
@@ -53,6 +93,13 @@ paths:
         required: true
         schema:
           type: string
+      - name: audience
+        in: query
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
       - name: refresh_token
         in: query
         required: true
@@ -102,7 +149,7 @@ paths:
     get:
       tags:
       - AUTH
-      operationId: get_1
+      operationId: get_2
       responses:
         "200":
           description: OK
@@ -114,11 +161,28 @@ paths:
                   type: object
 components:
   schemas:
+    UserInfoAOUpdate:
+      type: object
+      properties:
+        email:
+          type: string
+    UserInfoAO:
+      type: object
+      properties:
+        sub:
+          type: string
+        email:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
     OtpAOStartReq:
       type: object
       properties:
         email:
           type: string
+        notAnonymous:
+          type: boolean
     OtpAOStartRsp:
       type: object
       properties:

@@ -6,6 +6,7 @@
 package com.mytiki.l0_auth.features.latest.otp;
 
 import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
+import com.mytiki.l0_auth.features.latest.user_info.UserInfoService;
 import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.l0_auth.utilities.Mustache;
 import com.mytiki.l0_auth.utilities.Sendgrid;
@@ -30,8 +31,9 @@ public class OtpConfig {
             @Autowired @Qualifier("otpMustache") Mustache templates,
             @Autowired Sendgrid sendgrid,
             @Autowired JWSSigner jwsSigner,
-            @Autowired RefreshService refreshService) {
-        return new OtpService(otpRepository, templates, sendgrid, jwsSigner, refreshService);
+            @Autowired RefreshService refreshService,
+            @Autowired UserInfoService userInfoService) {
+        return new OtpService(otpRepository, templates, sendgrid, jwsSigner, refreshService, userInfoService);
     }
 
     @Bean
