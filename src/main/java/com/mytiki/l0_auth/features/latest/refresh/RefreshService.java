@@ -40,7 +40,7 @@ public class RefreshService {
         RefreshDO refreshDO = new RefreshDO();
         ZonedDateTime now = ZonedDateTime.now();
 
-        refreshDO.setJti(UUID.randomUUID().toString());
+        refreshDO.setJti(UUID.randomUUID());
         refreshDO.setIssued(now);
         refreshDO.setExpires(now.plusSeconds(Constants.REFRESH_EXPIRY_DURATION_SECONDS));
         repository.save(refreshDO);
@@ -57,7 +57,7 @@ public class RefreshService {
                                 .expirationTime(Date.from(refreshDO.getExpires().toInstant()))
                                 .subject(sub)
                                 .audience(aud)
-                                .jwtID(refreshDO.getJti())
+                                .jwtID(refreshDO.getJti().toString())
                                 .build()
                                 .toJSONObject()
                 ));
@@ -73,6 +73,7 @@ public class RefreshService {
             if (found.isPresent()) {
                 repository.delete(found.get());
                 Instant iat = Instant.now();
+                //TODO this should be in OtpService
                 JWSObject accessToken = new JWSObject(
                         new JWSHeader
                                 .Builder(JWSAlgorithm.ES256)
