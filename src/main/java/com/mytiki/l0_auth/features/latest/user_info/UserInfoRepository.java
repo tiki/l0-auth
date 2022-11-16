@@ -11,6 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserInfoRepository extends JpaRepository<UserInfoDO, UUID> {
-    Optional<UserInfoDO> findByUid(String uid);
+    Optional<UserInfoDO> findByUid(UUID uid);
     Optional<UserInfoDO> findByEmail(String email);
 }

@@ -69,7 +69,7 @@ public class RefreshService {
     public OAuth2AccessTokenResponse authorize(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            Optional<RefreshDO> found = repository.findByJti(jwt.getId());
+            Optional<RefreshDO> found = repository.findByJti(UUID.fromString(jwt.getId()));
             if (found.isPresent()) {
                 repository.delete(found.get());
                 Instant iat = Instant.now();
@@ -107,7 +107,7 @@ public class RefreshService {
     public void revoke(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            repository.deleteByJti(jwt.getId());
+            repository.deleteByJti(UUID.fromString(jwt.getId()));
         } catch (JwtException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), e);
         }

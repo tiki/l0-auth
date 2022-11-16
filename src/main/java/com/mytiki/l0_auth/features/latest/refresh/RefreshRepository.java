@@ -15,9 +15,9 @@ import java.util.UUID;
 
 @Repository
 public interface RefreshRepository extends JpaRepository<RefreshDO, UUID> {
-    Optional<RefreshDO> findByJti(String jti);
+    Optional<RefreshDO> findByJti(UUID jti);
 
-    void deleteByJti(String jti);
+    void deleteByJti(UUID jti);
 
     List<RefreshDO> findAllByExpiresBefore(ZonedDateTime before);
 }

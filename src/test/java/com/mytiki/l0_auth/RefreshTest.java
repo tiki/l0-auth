@@ -58,12 +58,12 @@ public class RefreshTest {
     private JwtDecoder jwtDecoder;
 
     @Test
-    public void Test_Token_Success() throws JOSEException, ParseException {
+    public void Test_Token_Success() throws JOSEException {
         String token = service.token(null, null);
         assertNotNull(token);
 
         Jwt jwt = jwtDecoder.decode(token);
-        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
+        Optional<RefreshDO> found = repository.findByJti(UUID.fromString(jwt.getId()));
 
         assertTrue(found.isPresent());
         assertNotNull(found.get().getIssued());
@@ -76,7 +76,7 @@ public class RefreshTest {
         service.revoke(token);
 
         Jwt jwt = jwtDecoder.decode(token);
-        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
+        Optional<RefreshDO> found = repository.findByJti(UUID.fromString(jwt.getId()));
         assertTrue(found.isEmpty());
     }
 
@@ -87,7 +87,7 @@ public class RefreshTest {
         service.revoke(token);
 
         Jwt jwt = jwtDecoder.decode(token);
-        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
+        Optional<RefreshDO> found = repository.findByJti(UUID.fromString(jwt.getId()));
         assertTrue(found.isEmpty());
     }
 
@@ -104,7 +104,7 @@ public class RefreshTest {
         assertTrue(rsp.getAccessToken().getExpiresAt().isAfter(Instant.now()));
 
         Jwt jwt = jwtDecoder.decode(token);
-        Optional<RefreshDO> found = repository.findByJti(jwt.getId());
+        Optional<RefreshDO> found = repository.findByJti(UUID.fromString(jwt.getId()));
         assertTrue(found.isEmpty());
     }
 
