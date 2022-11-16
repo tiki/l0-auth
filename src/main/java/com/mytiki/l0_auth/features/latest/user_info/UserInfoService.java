@@ -35,7 +35,7 @@ public class UserInfoService {
         Optional<UserInfoDO> found = repository.findByUid(jwt.getSubject());
         UserInfoAO rsp = new UserInfoAO();
         if(found.isPresent()){
-            rsp.setSub(found.get().getUid());
+            rsp.setSub(found.get().getUid().toString());
             rsp.setEmail(found.get().getEmail());
             rsp.setUpdatedAt(found.get().getModified());
         }
@@ -48,7 +48,7 @@ public class UserInfoService {
             return found.get();
         else {
             UserInfoDO userInfo = new UserInfoDO();
-            userInfo.setUid(UUID.randomUUID().toString());
+            userInfo.setUid(UUID.randomUUID());
             userInfo.setEmail(email);
             ZonedDateTime now = ZonedDateTime.now();
             userInfo.setCreated(now);
@@ -72,7 +72,7 @@ public class UserInfoService {
         saved = repository.save(saved);
 
         UserInfoAO rsp = new UserInfoAO();
-        rsp.setSub(saved.getUid());
+        rsp.setSub(saved.getUid().toString());
         rsp.setEmail(saved.getEmail());
         rsp.setUpdatedAt(saved.getModified());
         return rsp;

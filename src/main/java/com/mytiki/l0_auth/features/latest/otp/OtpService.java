@@ -59,6 +59,7 @@ public class OtpService {
     public OtpAOStartRsp start(OtpAOStartReq req) {
         String deviceId = randomB64(32);
         String code = randomAlphanumeric(6);
+        req.setEmail(req.getEmail().toLowerCase());
         if (sendEmail(req.getEmail(), code)) {
             OtpDO otpDO = new OtpDO();
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
