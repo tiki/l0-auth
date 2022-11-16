@@ -11,21 +11,23 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import java.io.Serializable;
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "refresh")
 public class RefreshDO implements Serializable {
-    private String jti;
+    private UUID jti;
     private ZonedDateTime issued;
     private ZonedDateTime expires;
 
     @Id
     @Column(name = "jti")
-    public String getJti() {
+    @org.hibernate.annotations.Type(type="org.hibernate.type.PostgresUUIDType")
+    public UUID getJti() {
         return jti;
     }
 
-    public void setJti(String jti) {
+    public void setJti(UUID jti) {
         this.jti = jti;
     }
 

@@ -10,22 +10,24 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import java.time.ZonedDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user_info")
 public class UserInfoDO {
-    private String uid;
+    private UUID uid;
     private String email;
     private ZonedDateTime created;
     private ZonedDateTime modified;
 
     @Id
     @Column(name = "uid")
-    public String getUid() {
+    @org.hibernate.annotations.Type(type="org.hibernate.type.PostgresUUIDType")
+    public UUID getUid() {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid(UUID uid) {
         this.uid = uid;
     }
 

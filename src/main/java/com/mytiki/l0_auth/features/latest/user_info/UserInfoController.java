@@ -32,7 +32,7 @@ public class UserInfoController {
 
     @RequestMapping(method = RequestMethod.GET)
     public UserInfoAO get(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
-        return service.get(token);
+        return service.get(token.replace("Bearer ", ""));
     }
 
     @RequestMapping(method = RequestMethod.POST)
@@ -44,6 +44,6 @@ public class UserInfoController {
                         .message("Invalid email")
                         .build();
         }
-        return service.update(token, body);
+        return service.update(token.replace("Bearer ", ""), body);
     }
 }

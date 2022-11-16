@@ -59,6 +59,7 @@ public class OtpService {
     public OtpAOStartRsp start(OtpAOStartReq req) {
         String deviceId = randomB64(32);
         String code = randomAlphanumeric(6);
+        req.setEmail(req.getEmail().toLowerCase());
         if (sendEmail(req.getEmail(), code)) {
             OtpDO otpDO = new OtpDO();
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
@@ -100,7 +101,7 @@ public class OtpService {
             String subject = null;
             if(found.get().getEmail() != null) {
                 UserInfoDO userInfo = userInfoService.createIfNotExists(found.get().getEmail());
-                subject = userInfo.getUid();
+                subject = userInfo.getUid().toString();
             }
 
             if(audience != null && audience.contains("storage.l0.mytiki.com") && subject == null)

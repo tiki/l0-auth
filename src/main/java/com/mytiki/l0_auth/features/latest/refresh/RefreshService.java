@@ -40,7 +40,7 @@ public class RefreshService {
         RefreshDO refreshDO = new RefreshDO();
         ZonedDateTime now = ZonedDateTime.now();
 
-        refreshDO.setJti(UUID.randomUUID().toString());
+        refreshDO.setJti(UUID.randomUUID());
         refreshDO.setIssued(now);
         refreshDO.setExpires(now.plusSeconds(Constants.REFRESH_EXPIRY_DURATION_SECONDS));
         repository.save(refreshDO);
@@ -57,7 +57,7 @@ public class RefreshService {
                                 .expirationTime(Date.from(refreshDO.getExpires().toInstant()))
                                 .subject(sub)
                                 .audience(aud)
-                                .jwtID(refreshDO.getJti())
+                                .jwtID(refreshDO.getJti().toString())
                                 .build()
                                 .toJSONObject()
                 ));
@@ -69,10 +69,11 @@ public class RefreshService {
     public OAuth2AccessTokenResponse authorize(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            Optional<RefreshDO> found = repository.findByJti(jwt.getId());
+            Optional<RefreshDO> found = repository.findByJti(UUID.fromString(jwt.getId()));
             if (found.isPresent()) {
                 repository.delete(found.get());
                 Instant iat = Instant.now();
+                //TODO this should be in OtpService
                 JWSObject accessToken = new JWSObject(
                         new JWSHeader
                                 .Builder(JWSAlgorithm.ES256)
@@ -106,7 +107,7 @@ public class RefreshService {
     public void revoke(String token) {
         try {
             Jwt jwt = jwtDecoder.decode(token);
-            repository.deleteByJti(jwt.getId());
+            repository.deleteByJti(UUID.fromString(jwt.getId()));
         } catch (JwtException e) {
             throw new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.INVALID_GRANT), e);
         }

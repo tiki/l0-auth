@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS otp(
 -- REFRESH TOKEN
 -- -----------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS refresh(
-    jti TEXT NOT NULL,
+    jti UUID NOT NULL,
     issued_utc TIMESTAMP WITH TIME ZONE NOT NULL,
     expires_utc TIMESTAMP WITH TIME ZONE NOT NULL,
     PRIMARY KEY(jti)
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS refresh(
 -- USER INFO
 -- -----------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS user_info(
-    uid TEXT NOT NULL,
+    uid UUID NOT NULL,
     email TEXT NOT NULL UNIQUE,
     created_utc TIMESTAMP WITH TIME ZONE NOT NULL,
     modified_utc TIMESTAMP WITH TIME ZONE NOT NULL,
