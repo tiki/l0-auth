@@ -67,7 +67,7 @@ public class UserInfoService {
 
         UserInfoDO saved = found.get();
         if(update.getEmail() != null)
-            saved.setEmail(update.getEmail());
+            saved.setEmail(update.getEmail().toLowerCase());
         saved.setModified(ZonedDateTime.now());
         saved = repository.save(saved);
 
