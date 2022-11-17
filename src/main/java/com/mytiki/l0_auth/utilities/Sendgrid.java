@@ -21,7 +21,7 @@ import java.lang.invoke.MethodHandles;
 
 public class Sendgrid {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-    private static final String FROM_ADDRESS = "no-reply@mytiki.com"; //TODO alts could be security@ --> what happens if you email no-reply?
+    private static final String FROM_ADDRESS = "no-reply@mytiki.com";
     private static final String FROM_NAME = "TIKI";
     private static final String CONTENT_TYPE_TEXT = "text/plain";
     private static final String CONTENT_TYPE_HTML = "text/html";
