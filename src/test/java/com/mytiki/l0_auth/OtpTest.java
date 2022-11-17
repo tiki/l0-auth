@@ -92,7 +92,7 @@ public class OtpTest {
         OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
         OtpAOStartRsp rsp = service.start(req);
 
-        String code = param.getValue().substring(139, 145);
+        String code = param.getValue().substring(19, 25);
         OAuth2AccessTokenResponse token = service.authorize(rsp.getDeviceId(), code, null);
 
         assertNotNull(token.getAccessToken().getTokenValue());
@@ -110,7 +110,7 @@ public class OtpTest {
 
         OtpAOStartReq req = new OtpAOStartReq("test@test.com", false);
         service.start(req);
-        String code = param.getValue().substring(139, 145);
+        String code = param.getValue().substring(19, 25);
 
         OAuth2AuthorizationException ex = assertThrows(OAuth2AuthorizationException.class,
                 () -> service.authorize(UUID.randomUUID().toString(), code, null));
@@ -137,7 +137,7 @@ public class OtpTest {
         OtpAOStartReq req = new OtpAOStartReq(testEmail, true);
         OtpAOStartRsp rsp = service.start(req);
 
-        String code = param.getValue().substring(139, 145);
+        String code = param.getValue().substring(19, 25);
         OAuth2AccessTokenResponse token = service.authorize(rsp.getDeviceId(), code, null);
 
         assertNotNull(token.getAccessToken().getTokenValue());
@@ -160,13 +160,13 @@ public class OtpTest {
         OtpAOStartReq req = new OtpAOStartReq(testEmail, true);
         OtpAOStartRsp rsp = service.start(req);
 
-        String code = param.getValue().substring(139, 145);
+        String code = param.getValue().substring(19, 25);
         OAuth2AccessTokenResponse token = service.authorize(rsp.getDeviceId(), code, null);
 
         req = new OtpAOStartReq(testEmail, true);
         rsp = service.start(req);
 
-        code = param.getValue().substring(139, 145);
+        code = param.getValue().substring(19, 25);
         token = service.authorize(rsp.getDeviceId(), code, null);
 
         UserInfoAO userInfo = userInfoService.get(token.getAccessToken().getTokenValue());
@@ -182,7 +182,7 @@ public class OtpTest {
         OtpAOStartRsp rsp = service.start(req);
 
         String audience = "storage.l0.mytiki.com";
-        String code = param.getValue().substring(139, 145);
+        String code = param.getValue().substring(19, 25);
         OAuth2AccessTokenResponse token = service.authorize(rsp.getDeviceId(), code, List.of(audience));
 
         Jwt jwt = jwtDecoder.decode(token.getAccessToken().getTokenValue());
@@ -198,7 +198,7 @@ public class OtpTest {
         OtpAOStartRsp rsp = service.start(req);
 
         String audience = "storage.l0.mytiki.com";
-        String code = param.getValue().substring(139, 145);
+        String code = param.getValue().substring(19, 25);
 
         OAuth2AuthorizationException ex = assertThrows(OAuth2AuthorizationException.class,
                 () -> service.authorize(rsp.getDeviceId(), code, List.of(audience)));
