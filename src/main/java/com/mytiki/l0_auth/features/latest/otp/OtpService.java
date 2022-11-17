@@ -126,20 +126,13 @@ public class OtpService {
     }
 
     private boolean sendEmail(String email, String code) {
-        /*String path = "https://mytiki.com/app/bouncer?otp=" + newOtpMap.get(KEY_OTP);
-        HashMap<String, String> templateDataMap = new HashMap<>(1);
-        templateDataMap.put("dynamic-link",
-                "https://mytiki.app/?link=" + URLEncoder.encode(path, StandardCharsets.UTF_8) +
-                        "&apn=com.mytiki.app" +
-                        "&ibi=com.mytiki.app");*/
-
         if(!EmailValidator.getInstance().isValid(email))
             throw new ApiExceptionBuilder(HttpStatus.BAD_REQUEST)
                     .message("Invalid email")
                     .build();
 
         Map<String, String> input = new HashMap<>(1);
-        input.put("dynamic-link", code);
+        input.put("OTP", code);
 
         return sendgrid.send(email,
                 templates.resovle(OtpConfig.TEMPLATE_SUBJECT, null),
