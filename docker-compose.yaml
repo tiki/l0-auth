@@ -1,0 +1,32 @@
+
+
+services:
+  backend:
+    build: auth
+    ports:
+      - 10502:10502
+    environment:
+      - POSTGRES_DB=example
+    networks:
+      - spring-postgres
+  db:
+    image: postgres
+    restart: always
+    secrets:
+      - db-password
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - spring-postgres
+    environment:
+      - POSTGRES_DB=example
+      - POSTGRES_PASSWORD_FILE=/run/secrets/db-password
+    expose:
+      - 5432
+volumes:
+  db-data:
+secrets:
+  db-password:
+    file: database/database-password.txt
+networks:
+  spring-postgres:
