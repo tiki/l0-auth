@@ -7,6 +7,7 @@ services:
       - 10502:10502
     environment:
       - POSTGRES_DB=example
+      - DOPPLER_TOKEN
     networks:
       - spring-postgres
   db:
