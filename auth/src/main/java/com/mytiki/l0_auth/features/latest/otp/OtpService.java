@@ -59,6 +59,7 @@ public class OtpService {
     public OtpAOStartRsp start(OtpAOStartReq req) {
         String deviceId = randomB64(32);
         String code = randomAlphanumeric(6);
+        req.setEmail(req.getEmail().toLowerCase());
         if (sendEmail(req.getEmail(), code)) {
             OtpDO otpDO = new OtpDO();
             ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
@@ -100,7 +101,7 @@ public class OtpService {
             String subject = null;
             if(found.get().getEmail() != null) {
                 UserInfoDO userInfo = userInfoService.createIfNotExists(found.get().getEmail());
-                subject = userInfo.getUid();
+                subject = userInfo.getUid().toString();
             }
 
             if(audience != null && audience.contains("storage.l0.mytiki.com") && subject == null)
@@ -125,20 +126,13 @@ public class OtpService {
     }
 
     private boolean sendEmail(String email, String code) {
-        /*String path = "https://mytiki.com/app/bouncer?otp=" + newOtpMap.get(KEY_OTP);
-        HashMap<String, String> templateDataMap = new HashMap<>(1);
-        templateDataMap.put("dynamic-link",
-                "https://mytiki.app/?link=" + URLEncoder.encode(path, StandardCharsets.UTF_8) +
-                        "&apn=com.mytiki.app" +
-                        "&ibi=com.mytiki.app");*/
-
         if(!EmailValidator.getInstance().isValid(email))
             throw new ApiExceptionBuilder(HttpStatus.BAD_REQUEST)
                     .message("Invalid email")
                     .build();
 
         Map<String, String> input = new HashMap<>(1);
-        input.put("dynamic-link", code);
+        input.put("OTP", code);
 
         return sendgrid.send(email,
                 templates.resovle(OtpConfig.TEMPLATE_SUBJECT, null),

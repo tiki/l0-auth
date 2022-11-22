@@ -75,9 +75,7 @@ public class UtilitiesConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder(
-            @Autowired JWKSet jwkSet,
-            @Value("${com.mytiki.l0_auth.jwt.kid}") String kid) {
+    public JwtDecoder jwtDecoder(@Autowired JWKSet jwkSet) {
         DefaultJWTProcessor<SecurityContext> jwtProcessor = new DefaultJWTProcessor<>();
         ImmutableJWKSet<SecurityContext> immutableJWKSet = new ImmutableJWKSet<>(jwkSet);
         jwtProcessor.setJWSKeySelector(
