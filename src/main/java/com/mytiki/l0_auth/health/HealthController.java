@@ -5,8 +5,10 @@
 
 package com.mytiki.l0_auth.health;
 
+import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.spring_rest_api.ApiConstants;
 import com.mytiki.spring_rest_api.ApiError;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,6 +23,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(value = ApiConstants.HEALTH_ROUTE)
 public class HealthController {
+
+    @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-health-get",
+            summary = "Health Check", description = "Get service status")
     @ApiResponse(
             responseCode = "200",
             content = @Content(
