@@ -7,7 +7,11 @@ package com.mytiki.l0_auth.features.latest.oauth;
 
 import com.mytiki.l0_auth.features.latest.otp.OtpService;
 import com.mytiki.l0_auth.features.latest.refresh.RefreshService;
+import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.spring_rest_api.ApiConstants;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.MediaType;
@@ -36,12 +40,17 @@ public class OauthController {
         this.refreshService = refreshService;
     }
 
+    @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-oauth-token-post",
+            summary = "Token Grant", description = "Issue authorization token. Use password grant for OTP flow.")
     @RequestMapping(
             method = RequestMethod.POST,
             path = "/token",
             consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE},
             params = {"username", "password"})
     public OAuth2AccessTokenResponse tokenGrantPw(
+            @Parameter(
+                    schema = @Schema(type = "string"),
+                    description = "(password, refresh, urn:ietf:params:oauth:grant-type:jwt-bearer)")
             @RequestParam(name = "grant_type") AuthorizationGrantType grantType,
             @RequestParam(required = false) String scope,
             @RequestParam(name = "username") String deviceId,
@@ -82,6 +91,8 @@ public class OauthController {
         throw  new OAuth2AuthorizationException(new OAuth2Error(OAuth2ErrorCodes.UNSUPPORTED_GRANT_TYPE));
     }
 
+    @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-oauth-revoke-post",
+            summary = "Revoke Token", description = "Revoke a refresh token. ")
     @ApiResponse(responseCode = "200")
     @RequestMapping(
             method = RequestMethod.POST,

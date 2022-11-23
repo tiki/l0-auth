@@ -13,7 +13,9 @@ paths:
     get:
       tags:
       - AUTH
-      operationId: get_1
+      summary: Get a User
+      description: Get the authorized user's profile
+      operationId: l0-auth-info-get
       parameters:
       - name: Authorization
         in: header
@@ -30,7 +32,9 @@ paths:
     post:
       tags:
       - AUTH
-      operationId: update
+      summary: Update a User
+      description: Update the authorized user's profile
+      operationId: l0-auth-info-post
       parameters:
       - name: Authorization
         in: header
@@ -54,7 +58,9 @@ paths:
     post:
       tags:
       - AUTH
-      operationId: issue
+      summary: Request OTP
+      description: Start a new passwordless authorization flow
+      operationId: l0-auth-otp-start-post
       requestBody:
         content:
           application/json:
@@ -72,13 +78,16 @@ paths:
     post:
       tags:
       - AUTH
-      operationId: tokenGrantPw_1_1
+      summary: Token Grant
+      description: Issue authorization token. Use password grant for OTP flow.
+      operationId: l0-auth-oauth-token-post_1_1
       parameters:
       - name: grant_type
         in: query
+        description: "(password, refresh, urn:ietf:params:oauth:grant-type:jwt-bearer)"
         required: true
         schema:
-          $ref: '#/components/schemas/AuthorizationGrantType'
+          type: string
       - name: scope
         in: query
         required: false
@@ -122,7 +131,9 @@ paths:
     post:
       tags:
       - AUTH
-      operationId: revoke
+      summary: Revoke Token
+      description: 'Revoke a refresh token. '
+      operationId: l0-auth-oauth-revoke-post
       parameters:
       - name: token
         in: query
@@ -136,7 +147,9 @@ paths:
     get:
       tags:
       - HEALTH
-      operationId: get
+      summary: Health Check
+      description: Get service status
+      operationId: l0-auth-health-get
       responses:
         "200":
           description: OK
@@ -150,7 +163,9 @@ paths:
     get:
       tags:
       - AUTH
-      operationId: get_2
+      summary: JWKS endpoint
+      description: JSON Web Keys for signature verification
+      operationId: l0-auth-jwks-get
       responses:
         "200":
           description: OK
@@ -192,11 +207,6 @@ components:
         expires:
           type: string
           format: date-time
-    AuthorizationGrantType:
-      type: object
-      properties:
-        value:
-          type: string
     OAuth2AccessToken:
       type: object
       properties:

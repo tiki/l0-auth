@@ -5,7 +5,9 @@
 
 package com.mytiki.l0_auth.features.latest.otp;
 
+import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.spring_rest_api.ApiConstants;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +27,8 @@ public class OtpController {
         this.otpService = otpService;
     }
 
+    @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-otp-start-post",
+            summary = "Request OTP", description = "Start a new passwordless authorization flow")
     @RequestMapping(method = RequestMethod.POST, path = PATH_ISSUE)
     public OtpAOStartRsp issue(@RequestBody OtpAOStartReq body) {
         return otpService.start(body);
