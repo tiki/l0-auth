@@ -9,9 +9,11 @@ import com.mytiki.l0_auth.features.latest.FeaturesConfig;
 import com.mytiki.l0_auth.health.HealthConfig;
 import com.mytiki.l0_auth.security.SecurityConfig;
 import com.mytiki.l0_auth.utilities.UtilitiesConfig;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,6 +51,12 @@ public class AppConfig {
                                 .url("https://github.com/tiki/l0-auth/blob/main/LICENSE")))
                 .servers(Collections.singletonList(
                         new Server()
-                                .url("https://auth.l0.mytiki.com")));
+                                .url("https://auth.l0.mytiki.com")))
+                .components(new Components()
+                        .addSecuritySchemes("jwt",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")));
     }
 }
