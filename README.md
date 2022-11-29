@@ -1,6 +1,6 @@
-# Layer 0 Authorization Service
+###  [🍍 Console](https://console.mytiki.com) &nbsp; ⏐ &nbsp; [📚 Docs](https://docs.mytiki.com)
 
-### [📚 Docs](https://docs.mytiki.com) &nbsp;&nbsp;[💬 Discord](https://discord.gg/tiki)
+# Layer 0 Authorization Service
 
 An Oauth2 style authorization microservice, used to gate access to TIKI's various Layer 0 services.
 
