@@ -163,7 +163,7 @@
                 <configuration>
                     <apiDocsUrl>http://localhost:10502/v3/api-docs.yaml</apiDocsUrl>
                     <outputFileName>openapi.yaml</outputFileName>
-                    <outputDir>${project.basedir}/docs</outputDir>
+                    <outputDir>docs</outputDir>
                 </configuration>
             </plugin>
             <plugin>
