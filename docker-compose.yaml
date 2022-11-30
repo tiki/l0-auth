@@ -1,12 +1,14 @@
-
-
 services:
-  backend:
-    build: auth
+  service:
+    build:
+      context: .
+      dockerfile: dev.dockerfile
+      args:
+        - JAR_FILE=target/*.jar
     ports:
       - 10502:10502
     environment:
-      - POSTGRES_DB=example
+      - POSTGRES_DB=l0_auth
       - DOPPLER_TOKEN
     networks:
       - spring-postgres
@@ -20,8 +22,9 @@ services:
     networks:
       - spring-postgres
     environment:
-      - POSTGRES_DB=example
-      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=l0_auth
+      - POSTGRES_PASSWORD=postgres12345
+      - POSTGRES_USERNAME=l0_auth_service
     expose:
       - 5432
 volumes:

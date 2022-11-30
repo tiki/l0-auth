@@ -12,5 +12,4 @@ RUN apt-get update && apt-get install -y apt-transport-https ca-certificates cur
     apt-get -y install doppler
 
 EXPOSE 8502
-#CMD ["doppler", "run", "-c", "tst_local", "--", "printenv"]
-CMD ["doppler", "run", "-c", "tst_local", "--", "java", "-Djava.security.egd=file:/dev/./urandom", "-Dspring.profiles.active=prod", "-jar", "/app.jar"]
+CMD ["doppler", "run", "-c", "prd", "--", "java", "-Djava.security.egd=file:/dev/./urandom", "-Dspring.profiles.active=prod", "-jar", "/app.jar"]
