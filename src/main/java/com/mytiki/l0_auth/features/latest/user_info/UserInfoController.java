@@ -9,6 +9,7 @@ import com.mytiki.l0_auth.utilities.Constants;
 import com.mytiki.spring_rest_api.ApiConstants;
 import com.mytiki.spring_rest_api.ApiExceptionBuilder;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.springframework.http.HttpHeaders;
@@ -30,14 +31,18 @@ public class UserInfoController {
 
 
     @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-info-get",
-            summary = "Get a User", description = "Get the authorized user's profile")
+            summary = "Get a User",
+            description = "Get the authorized user's profile",
+            security = @SecurityRequirement(name = "jwt"))
     @RequestMapping(method = RequestMethod.GET)
     public UserInfoAO get(@RequestHeader(HttpHeaders.AUTHORIZATION) String token) {
         return service.get(token.replace("Bearer ", ""));
     }
 
     @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-info-post",
-            summary = "Update a User", description = "Update the authorized user's profile")
+            summary = "Update a User",
+            description = "Update the authorized user's profile",
+            security = @SecurityRequirement(name = "jwt"))
     @RequestMapping(method = RequestMethod.POST)
     public UserInfoAO update(@RequestHeader(HttpHeaders.AUTHORIZATION) String token,
                              @RequestBody UserInfoAOUpdate body) {
