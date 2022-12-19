@@ -16,6 +16,7 @@ resource "digitalocean_app" "l0-auth-app" {
       instance_count     = 2
       instance_size_slug = "professional-xs"
       http_port          = local.port
+      dockerfile_path    = "prod.dockerfile"
 
       image {
         registry_type = "DOCR"

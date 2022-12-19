@@ -1,30 +1,36 @@
 services:
-  db:
-    image: postgres:15.1-alpine
-    environment:
-      - POSTGRES_PASSWORD=postgrespw
-    ports:
-      - 5432:5432
-    volumes:
-      - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   service:
     build:
       context: .
       dockerfile: dev.dockerfile
+      target: development
       args:
         - JAR_FILE=target/*.jar
-    ports:
-      - 10502:10502
     environment:
+      - POSTGRES_USER=l0_auth_service
+      - POSTGRES_PASSWORD=postgrespw
+      - SENDGRID_API_KEY
+    ports:
+      - 8000:8000
+      - 10502:10502
+    volumes:
+      - ./:/app
+  db:
+    image: postgres:15.1-alpine
+    environment:
+      - POSTGRES_USER=l0_auth_service
+      - POSTGRES_PASSWORD=postgrespw
       - POSTGRES_DB=l0_auth
-      - DOPPLER_TOKEN
-
+    ports:
+      - 5432:5432
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - "./database:/docker-entrypoint-initdb.d"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U l0_auth_service -d l0_auth"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   db-data:

@@ -37,3 +37,6 @@ hs_err_pid*
 
 # Local Properties
 application-local.properties
+
+# Maven Wrapper Jar
+.mvn/wrapper/maven-wrapper.jar
