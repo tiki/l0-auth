@@ -6,6 +6,7 @@
 package com.mytiki.l0_auth.utilities;
 
 import com.nimbusds.jose.jwk.JWKSet;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,6 +24,8 @@ public class JWKS {
         this.jwkSet = jwkSet;
     }
 
+    @Operation(operationId = Constants.PROJECT_DASH_PATH +  "-jwks-get",
+            summary = "JWKS endpoint", description = "JSON Web Keys for signature verification")
     @RequestMapping(method = RequestMethod.GET)
     public Map<String, Object> get() {
         return jwkSet.toJSONObject(true);

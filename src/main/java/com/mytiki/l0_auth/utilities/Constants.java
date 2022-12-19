@@ -9,6 +9,8 @@ public interface Constants {
     String MODULE_DOT_PATH = "com.mytiki.l0_auth";
     String MODULE_SLASH_PATH = "com/mytiki/l0_auth";
 
+    String PROJECT_DASH_PATH = "l0-auth";
+
     String SLICE_FEATURES = "features";
     String SLICE_LATEST = "latest";
 
