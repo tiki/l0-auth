@@ -1,17 +1,4 @@
 services:
-  service:
-    build:
-      context: .
-      dockerfile: dev.dockerfile
-      args:
-        - JAR_FILE=target/*.jar
-    ports:
-      - 10502:10502
-    environment:
-      - POSTGRES_DB=l0_auth
-      - DOPPLER_TOKEN
-    networks:
-      - spring-postgres
   db:
     image: postgres:15.1-alpine
     environment:
@@ -30,7 +17,18 @@ services:
       timeout: 5s
       retries: 5
 
+  service:
+    build:
+      context: .
+      dockerfile: dev.dockerfile
+      args:
+        - JAR_FILE=target/*.jar
+    ports:
+      - 10502:10502
+    environment:
+      - POSTGRES_DB=l0_auth
+      - DOPPLER_TOKEN
+
+
 volumes:
   db-data:
-networks:
-  spring-postgres:
