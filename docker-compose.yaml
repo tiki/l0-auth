@@ -13,20 +13,23 @@ services:
     networks:
       - spring-postgres
   db:
-    image: postgres
-    restart: always
-    secrets:
-      - db-password
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    networks:
-      - spring-postgres
+    image: postgres:15.1-alpine
     environment:
-      - POSTGRES_DB=l0_auth
-      - POSTGRES_PASSWORD=postgres12345
-      - POSTGRES_USERNAME=l0_auth_service
-    expose:
-      - 5432
+      - POSTGRES_PASSWORD=postgrespw
+    ports:
+      - 5432:5432
+    volumes:
+      # Disabled persistence of Postgres data for now
+      # - "./cloudquery-data/postgres:/var/lib/postgresql/data"
+
+      # SQL scripts that perform additional database setup
+      - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   db-data:
 networks:
