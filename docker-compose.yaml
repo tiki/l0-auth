@@ -6,10 +6,6 @@ services:
     ports:
       - 5432:5432
     volumes:
-      # Disabled persistence of Postgres data for now
-      # - "./cloudquery-data/postgres:/var/lib/postgresql/data"
-
-      # SQL scripts that perform additional database setup
       - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
