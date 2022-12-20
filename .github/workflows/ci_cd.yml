@@ -92,6 +92,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: l0-auth/
+          file: prod.dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           build-args: |
