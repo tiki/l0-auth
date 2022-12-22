@@ -27,7 +27,7 @@ hs_err_pid*
 *.iml
 
 # Output files
-target
+/target
 
 # Fuckin Macs
 .DS_Store
