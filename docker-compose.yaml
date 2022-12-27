@@ -21,6 +21,7 @@ services:
       - POSTGRES_USER=l0_auth_service
       - POSTGRES_PASSWORD=postgrespw
       - POSTGRES_DB=l0_auth
+      - SENDGRID_API_KEY
     ports:
       - 5432:5432
     volumes:
