@@ -1,4 +1,8 @@
 FROM azul/zulu-openjdk:11 as base
+
+RUN apt update -y
+RUN apt install wget -y
+
 WORKDIR /app
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
